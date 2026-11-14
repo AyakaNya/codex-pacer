@@ -390,8 +390,8 @@ final class QuotaRingsView: NSView {
             if let time = ring.time, !ring.stale {
                 let angle = (from + span * min(1, max(0, time))) * .pi / 180
                 let line = CGMutablePath()
-                line.move(to: CGPoint(x: center.x + tick.0 * cos(angle), y: center.y + tick.0 * sin(angle)), transform: transform)
-                line.addLine(to: CGPoint(x: center.x + tick.1 * cos(angle), y: center.y + tick.1 * sin(angle)), transform: transform)
+                line.move(to: CGPoint(x: center.x + tick.0 * cos(CGFloat(angle)), y: center.y + tick.0 * sin(CGFloat(angle))), transform: transform)
+                line.addLine(to: CGPoint(x: center.x + tick.1 * cos(CGFloat(angle)), y: center.y + tick.1 * sin(CGFloat(angle))), transform: transform)
                 let mark = CAShapeLayer()
                 mark.path = line; mark.strokeColor = drawing.tick.cgColor; mark.lineWidth = 1.2 * k; mark.lineCap = .round
                 body.addSublayer(mark)
@@ -576,7 +576,7 @@ struct PriceClockGlyph: View {
             let start = Double(hour) * 15, end = hour == currentHour ? max(start + 4, now) : start + 15
             context.stroke(arc(centre, 5.45 * k, start, end), with: .color(AgentProvider.deepseek.tint), style: StrokeStyle(lineWidth: 2.2 * k))
         }
-        let radians = (now - 90) * .pi / 180
+        let radians: CGFloat = CGFloat((now - 90) * Double.pi / 180)
         var hand = Path()
         hand.move(to: CGPoint(x: centre.x + 2.4 * k * cos(radians), y: centre.y + 2.4 * k * sin(radians)))
         hand.addLine(to: CGPoint(x: centre.x + 9.6 * k * cos(radians), y: centre.y + 9.6 * k * sin(radians)))
@@ -596,7 +596,7 @@ struct PriceClockGlyph: View {
             context.stroke(arc(centre, 50 * k, span.lowerBound + 2, span.upperBound - 2), with: .color(PacerPalette.attention),
                 style: StrokeStyle(lineWidth: 6 * k, lineCap: .round))
         }
-        let radians = (now - 90) * .pi / 180
+        let radians: CGFloat = CGFloat((now - 90) * Double.pi / 180)
         var hand = Path()
         hand.move(to: CGPoint(x: centre.x + 26 * k * cos(radians), y: centre.y + 26 * k * sin(radians)))
         hand.addLine(to: CGPoint(x: centre.x + 51 * k * cos(radians), y: centre.y + 51 * k * sin(radians)))

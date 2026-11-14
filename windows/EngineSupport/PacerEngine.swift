@@ -1416,6 +1416,7 @@ actor EngineRuntime {
                 // Mac's start/wake is an explicit request, without bypassing a
                 // signed-out/challenge or failed-disconnect connection state.
                 case .deepseek: _ = await balanceMonitor?.refreshIfDue(active: active, requested: force)
+                case .antigravity: break // 本機 Adapter 目前僅支援 macOS。
                 }
             case .codexActivity: await refresh(discover: true, refreshActivityMonitors: false)
             case .remoteActivity: lastRemoteDiscovery = now(); scheduleRemoteDiscovery(); await bindDesktopMonitor()
@@ -1447,6 +1448,7 @@ actor EngineRuntime {
             case .codex: await quotaMonitor?.refreshIfDue(expanded: expanded, force: true)
             case .claude: _ = await claudeQuotaMonitor?.refreshIfDue(expanded: expanded, force: true)
             case .deepseek: _ = await balanceMonitor?.refreshIfDue(active: expanded, requested: true)
+            case .antigravity: break
             }
         }
         if provider != .codex { await bindActivityMonitor(provider) }
@@ -1476,6 +1478,7 @@ actor EngineRuntime {
         case .deepseek:
             deepseekLocal = LocalActivitySnapshot(); deepseekUsage = .init(); deepseekNoticePolicy = .init()
             balanceState = nil; walletSource = nil; activityState.deepseekAttention = .init()
+        case .antigravity: break
         }
         activityState.clearFirstOutput()
     }
@@ -2545,7 +2548,7 @@ actor EngineRuntime {
         trackActivityHosts(for: scan.provider)
     }
     private func navigationHome(for provider: AgentProvider) -> URL {
-        switch provider { case .codex: codexHome; case .claude: claudeHome; case .deepseek: deepseekHome }
+        switch provider { case .codex: codexHome; case .claude: claudeHome; case .deepseek: deepseekHome; case .antigravity: codexHome }
     }
     private func scheduleNavigationFailure() {
         navigationFailureTask?.cancel(); navigationFailureTask = nil
@@ -2582,6 +2585,7 @@ actor EngineRuntime {
             }
         case .deepseek:
             fields += [deepseekSettings.selection.rawValue, DeepSeekAuthMode.detect(home: deepseekHome)?.rawValue ?? ""]
+        case .antigravity: return nil
         }
         if scope == "quota" {
             guard enabled.contains(provider), let account = (provider == .claude ? claudeQuotaState?.snapshot : codexQuota)?.accountScope else { return nil }

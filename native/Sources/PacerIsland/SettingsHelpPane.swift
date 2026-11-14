@@ -40,6 +40,7 @@ struct SettingsHelpPane: View {
                 case .module(.codex): codexRows
                 case .module(.claude): claudeRows
                 case .module(.deepseek): deepseekRows
+                case .module(.antigravity): Text(L10n.text("antigravity.passive")).font(.system(size: 12))
                 }
             }
         }

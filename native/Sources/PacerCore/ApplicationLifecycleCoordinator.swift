@@ -95,6 +95,7 @@ public struct ApplicationLifecycleCoordinator: Sendable {
         actions += changed.contains(.claude) ? [.resetSource(.claude)] : [.activity(.claude)]
         actions.append(.cloud)
         actions += changed.contains(.deepseek) ? [.resetSource(.deepseek)] : [.activity(.deepseek)]
+        actions += changed.contains(.antigravity) ? [.resetSource(.antigravity)] : [.activity(.antigravity)]
         actions += [.balanceBinding, .refilter, .applications]
         return Plan(actions, changed: changed)
     }
@@ -105,6 +106,7 @@ public struct ApplicationLifecycleCoordinator: Sendable {
         if configuration.enabled.contains(.codex), input.now.timeIntervalSince(input.lastCodexDiscovery) >= (input.codexConnected ? 120 : 60) { actions.append(.codexActivity) }
         if configuration.enabled.contains(.codex), input.now.timeIntervalSince(input.lastRemoteDiscovery) >= 30 { actions.append(.remoteActivity) }
         if configuration.enabled.contains(.claude), input.now.timeIntervalSince(input.lastClaudeDiscovery) >= 30 { actions.append(.claudeTargets) }
+        if configuration.enabled.contains(.antigravity) { actions.append(.activity(.antigravity)) }
         if configuration.enabled.contains(.deepseek) { actions.append(.quota(.deepseek, force: false, active: input.expanded || input.deepseekRunning)) }
         return Plan(actions)
     }
@@ -127,7 +129,7 @@ public struct ApplicationLifecycleCoordinator: Sendable {
     private func quotaActions(force: Bool) -> [Action] { AgentProvider.allCases.filter { configuration.enabled.contains($0) }.map { .quota($0, force: force) } }
     private func activityActions() -> [Action] {
         (configuration.enabled.contains(.codex) ? [.codexActivity, .remoteActivity] : []) +
-            [AgentProvider.claude, .deepseek].filter { configuration.enabled.contains($0) }.map { .activity($0) }
+            [AgentProvider.claude, .deepseek, .antigravity].filter { configuration.enabled.contains($0) }.map { .activity($0) }
     }
     @discardableResult public static func cleanup(_ operations: [Resource: Cleanup], deadline: ShutdownDeadline = ShutdownDeadline()) async -> Bool {
         await deadline.perform(Resource.allCases.compactMap { operations[$0] })

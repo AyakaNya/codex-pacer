@@ -67,7 +67,7 @@ final class ApplicationLifecycleCoordinatorTests: XCTestCase {
         XCTAssertEqual(plan.actions, [.pruneActivities, .demoSnapshot, .applications])
         var observed = Lifecycle(demo: true, configuration: configuration())
         let change = observed.settings(configuration(enabled: [.claude]))
-        XCTAssertEqual(change.changedProviders, [.codex, .deepseek])
+        XCTAssertEqual(change.changedProviders, [.codex, .deepseek, .antigravity])
         XCTAssertTrue(change.actions.contains(.resetSource(.codex))); XCTAssertFalse(change.actions.contains(.demoSnapshot))
     }
     private actor Gate {

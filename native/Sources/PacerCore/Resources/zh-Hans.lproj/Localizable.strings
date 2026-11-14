@@ -1290,3 +1290,13 @@
 "layout.option.warning_limit" = "最多显示";
 "layout.option.warning_limit.two" = "2 个";
 "layout.option.warning_limit.all" = "全部";
+
+"antigravity.source" = "Antigravity local Language Server";
+"antigravity.connected" = "已連接 Antigravity 本機 Language Server";
+"antigravity.unavailable" = "無法讀取 Antigravity；請確認 IDE 或 agy 已在執行";
+"antigravity.passive" = "唯讀監控已啟動的 IDE 與 agy CLI。無法確認的任務狀態顯示為 Unknown，不會自動啟動 agy 或讀取登入憑證。";
+"antigravity.reset" = "重置";
+"antigravity.remaining" = "剩餘配額";
+"panel.block.antigravity" = "Antigravity";
+"panel.block_detail.antigravity" = "Gemini 與 Claude + GPT 的獨立配額";
+"main.search.antigravity" = "Antigravity agy Gemini Google";

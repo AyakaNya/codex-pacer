@@ -45,11 +45,12 @@ struct QuotaDashboardView: View {
         self.model = model; providers = section.providers; spendBeside = section.spendBeside
     }
 
+    private var gaugeProviders: [AgentProvider] { providers.filter { $0 != .antigravity } }
     private var options: ExpandedPanelOptions { model.panelOptions }
     private var layout: QuotaDashboardPresentation.Layout {
         let options = options
-        return QuotaDashboardPresentation.layout(providers: providers,
-            snapshots: Dictionary(uniqueKeysWithValues: providers.compactMap { provider in
+        return QuotaDashboardPresentation.layout(providers: gaugeProviders,
+            snapshots: Dictionary(uniqueKeysWithValues: gaugeProviders.compactMap { provider in
                 model.providerQuota(provider).map { (provider, $0) }
             }), style: model.expandedQuotaStyle, now: model.now, preservingOrder: true, details: options.quotaDetails,
             periods: { options.periods(for: $0) })
@@ -57,15 +58,18 @@ struct QuotaDashboardView: View {
 
     var body: some View {
         let layout = layout
-        Group {
+        VStack(spacing: 8) {
+            if providers.contains(.antigravity) { AntigravityQuotaView(model: model) }
+            if !gaugeProviders.isEmpty {
             switch layout.kind {
             case .legacyCodex:
                 if let snapshot = model.providerQuota(.codex) { LegacyCodexQuotaView(model: model, snapshot: snapshot) }
             case .deepseekSolo: DeepSeekSoloDashboard(model: model, spendBeside: spendBeside)
-            case .classicRings: ClassicQuotaDashboardView(model: model, providers: providers, slots: layout.slots)
+            case .classicRings: ClassicQuotaDashboardView(model: model, providers: gaugeProviders, slots: layout.slots)
             case .splitSingle:
                 if let provider = layout.slots.first?.provider { single(provider) }
             case .splitRings: rings(layout.slots)
+            }
             }
         }
         .environment(\.quotaPaceTick, options.paceTick)

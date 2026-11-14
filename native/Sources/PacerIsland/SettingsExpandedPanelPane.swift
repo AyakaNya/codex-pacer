@@ -96,7 +96,7 @@ struct SettingsExpandedPanelPane: View {
         case .tasks:
             "\(L10n.text("main.panel.page_size")) \(options.pageSize) · "
                 + L10n.text(options.rowStyle == .oneLine ? "main.panel.row_one" : "main.panel.row_two")
-        case .codex, .claude:
+        case .codex, .claude, .antigravity:
             periodsLabel(options.periods(for: block.provider ?? .codex))
         case .deepseek:
             L10n.text("main.panel.dial") + " · " + L10n.text(options.deepseekDial == .budget ? "main.panel.dial_budget" : "main.panel.dial_day")
@@ -173,7 +173,7 @@ struct SettingsExpandedPanelPane: View {
         switch first {
         case .tasks:
             return ExpandedPanelPresentation.header(.init(kind: .tasks), budgetDial: false).title
-        case .codex, .claude, .deepseek:
+        case .codex, .claude, .deepseek, .antigravity:
             return ExpandedPanelPresentation.header(.init(kind: .quota, providers: row.compactMap(\.provider)), budgetDial: false).title
         case .deepseekSpend, .deepseekWeek:
             return first.label
@@ -384,7 +384,7 @@ struct SettingsExpandedPanelPane: View {
                     (240, L10n.text("settings.four_hours")), (0, L10n.text("settings.until_clicked"))])
             }
             link(L10n.text("settings.hide_projects"), to: L10n.text("main.panel.in_general"), action: openGeneral)
-        case .block(.codex), .block(.claude):
+        case .block(.codex), .block(.claude), .block(.antigravity):
             if case .block(let block) = item, let provider = block.provider { quota(provider) }
         case .block(.deepseek):
             segments(L10n.text("main.panel.dial"), help: L10n.text("main.panel.dial_help"),
@@ -461,6 +461,7 @@ extension ExpandedPanelLayout.Block {
         case .codex: .codex
         case .claude: .claude
         case .deepseek: .deepseek
+        case .antigravity: .antigravity
         }
     }
 }

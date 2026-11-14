@@ -202,7 +202,7 @@ struct SettingsCollapsedBarPane: View {
     /// Which service each ring shows. Unset follows the services in order.
     @ViewBuilder private var ringPickers: some View {
         let automatic: [AgentProvider] = {
-            var result = Array(providers.filter { $0 != .deepseek }.prefix(2))
+            var result = Array(providers.filter { $0 != .deepseek && $0 != .antigravity }.prefix(2))
             if result.count == 1, providers.contains(.deepseek) { result.append(.deepseek) }
             return result
         }()
@@ -219,7 +219,7 @@ struct SettingsCollapsedBarPane: View {
                        selection: Binding(get: { current[slot.rawValue] }, set: { value in
                            quotaRings = current; quotaRings[slot.rawValue] = value
                        }),
-                       options: providers.map { ($0.rawValue, $0.displayName) } + [("none", L10n.text("layout.ring_none"))])
+                       options: providers.filter { $0 != .antigravity }.map { ($0.rawValue, $0.displayName) } + [("none", L10n.text("layout.ring_none"))])
         }
         if showsDeepSeek, !deepseekHasBudget {
             Text(L10n.text("layout.ring_deepseek_needs_budget")).font(.system(size: 12)).foregroundStyle(MainPalette.attention)

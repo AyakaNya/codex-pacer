@@ -123,7 +123,7 @@ struct DeepSeekDialFace: View {
             context.stroke(arc(centre, radius + 6.2 * k, span.lowerBound + 0.8, span.upperBound - 0.8),
                 with: .color(PacerPalette.attention.opacity(0.85)), style: StrokeStyle(lineWidth: 1.5 * k, lineCap: .round))
         }
-        let radians = (now - 90) * .pi / 180
+        let radians: CGFloat = CGFloat((now - 90) * Double.pi / 180)
         var tick = Path()
         tick.move(to: CGPoint(x: centre.x + (radius - 5 * k) * cos(radians), y: centre.y + (radius - 5 * k) * sin(radians)))
         tick.addLine(to: CGPoint(x: centre.x + (radius + 5 * k) * cos(radians), y: centre.y + (radius + 5 * k) * sin(radians)))

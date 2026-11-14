@@ -8,14 +8,16 @@ public struct ProviderInstallationDetection: Equatable, Sendable {
     public let codexInstalled: Bool
     public let claudeInstalled: Bool
     public let deepseekInstalled: Bool
-    public init(codexInstalled: Bool, claudeInstalled: Bool, deepseekInstalled: Bool = false) {
-        self.codexInstalled = codexInstalled; self.claudeInstalled = claudeInstalled; self.deepseekInstalled = deepseekInstalled
+    public let antigravityInstalled: Bool
+    public init(codexInstalled: Bool, claudeInstalled: Bool, deepseekInstalled: Bool = false, antigravityInstalled: Bool = false) {
+        self.codexInstalled = codexInstalled; self.claudeInstalled = claudeInstalled; self.deepseekInstalled = deepseekInstalled; self.antigravityInstalled = antigravityInstalled
     }
     public func isInstalled(_ provider: AgentProvider) -> Bool {
         switch provider {
         case .codex: codexInstalled
         case .claude: claudeInstalled
         case .deepseek: deepseekInstalled
+        case .antigravity: antigravityInstalled
         }
     }
 
@@ -28,15 +30,17 @@ public struct ProviderModules: Equatable, Sendable {
     public var codexMode: ProviderModuleMode
     public var claudeMode: ProviderModuleMode
     public var deepseekMode: ProviderModuleMode
+    public var antigravityMode: ProviderModuleMode
     public init(codexMode: ProviderModuleMode = .automatic, claudeMode: ProviderModuleMode = .automatic,
-                deepseekMode: ProviderModuleMode = .automatic) {
-        self.codexMode = codexMode; self.claudeMode = claudeMode; self.deepseekMode = deepseekMode
+                deepseekMode: ProviderModuleMode = .automatic, antigravityMode: ProviderModuleMode = .automatic) {
+        self.codexMode = codexMode; self.claudeMode = claudeMode; self.deepseekMode = deepseekMode; self.antigravityMode = antigravityMode
     }
     public func mode(for provider: AgentProvider) -> ProviderModuleMode {
         switch provider {
         case .codex: codexMode
         case .claude: claudeMode
         case .deepseek: deepseekMode
+        case .antigravity: antigravityMode
         }
     }
     public mutating func setMode(_ mode: ProviderModuleMode, for provider: AgentProvider) {
@@ -44,6 +48,7 @@ public struct ProviderModules: Equatable, Sendable {
         case .codex: codexMode = mode
         case .claude: claudeMode = mode
         case .deepseek: deepseekMode = mode
+        case .antigravity: antigravityMode = mode
         }
     }
     public func enabledProviders(detection: ProviderInstallationDetection) -> Set<AgentProvider> {
@@ -59,7 +64,7 @@ public struct ProviderModules: Equatable, Sendable {
         func mode(_ provider: AgentProvider) -> ProviderModuleMode {
             defaults.string(forKey: key(provider)).flatMap(ProviderModuleMode.init(rawValue:)) ?? .automatic
         }
-        return Self(codexMode: mode(.codex), claudeMode: mode(.claude), deepseekMode: mode(.deepseek))
+        return Self(codexMode: mode(.codex), claudeMode: mode(.claude), deepseekMode: mode(.deepseek), antigravityMode: mode(.antigravity))
     }
     public func save(to defaults: UserDefaults = .standard) {
         for provider in AgentProvider.allCases { defaults.set(mode(for: provider).rawValue, forKey: Self.key(provider)) }

@@ -6,7 +6,7 @@ import Foundation
 /// first edit saves the blocks as they then appeared.
 public struct ExpandedPanelLayout: Equatable, Codable, Sendable {
     public enum Block: String, CaseIterable, Codable, Sendable, Identifiable {
-        case tasks, codex, claude, deepseek, deepseekSpend, deepseekWeek
+        case tasks, codex, claude, deepseek, antigravity, deepseekSpend, deepseekWeek
         public var id: String { rawValue }
         public var label: String { L10n.text("panel.block." + rawValue) }
         public var detail: String { L10n.text("panel.block_detail." + rawValue) }
@@ -18,11 +18,12 @@ public struct ExpandedPanelLayout: Equatable, Codable, Sendable {
             case .tasks: nil
             case .codex: .codex
             case .claude: .claude
+            case .antigravity: .antigravity
             case .deepseek, .deepseekSpend, .deepseekWeek: .deepseek
             }
         }
         /// Adjacent quota blocks share one row when the panel pairs them.
-        public var isQuota: Bool { self == .codex || self == .claude || self == .deepseek }
+        public var isQuota: Bool { self == .codex || self == .claude || self == .deepseek || self == .antigravity }
         public var group: Group { self == .tasks ? .tasks : isQuota ? .quota : .deepseek }
         public var symbol: String {
             switch self {
@@ -30,11 +31,15 @@ public struct ExpandedPanelLayout: Equatable, Codable, Sendable {
             case .codex: "chevron.left.forwardslash.chevron.right"
             case .claude: "asterisk"
             case .deepseek: "water.waves"
+            case .antigravity: "sparkles"
             case .deepseekSpend: "chart.pie"
             case .deepseekWeek: "chart.xyaxis.line"
             }
         }
-        public func isAvailable(for providers: Set<AgentProvider>) -> Bool { provider.map(providers.contains) ?? true }
+        public func isAvailable(for providers: Set<AgentProvider>) -> Bool {
+            guard let provider else { return true }
+            return providers.contains(provider)
+        }
         /// Earlier names map to their blocks; unknown names are dropped.
         fileprivate static func saved(_ value: String) -> Self? { Self(rawValue: value) }
     }
@@ -61,6 +66,7 @@ public struct ExpandedPanelLayout: Equatable, Codable, Sendable {
     /// and week when DeepSeek is the only service and its content was Detailed.
     public static func automatic(providers: Set<AgentProvider>, deepseekDetailed: Bool) -> Self {
         var blocks: [Block] = [.tasks, .codex, .claude, .deepseek]
+        if providers.contains(.antigravity) { blocks.append(.antigravity) }
         if deepseekDetailed, providers == [.deepseek] { blocks += [.deepseekSpend, .deepseekWeek] }
         return Self(blocks: blocks)
     }

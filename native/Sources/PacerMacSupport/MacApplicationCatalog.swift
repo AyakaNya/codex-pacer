@@ -18,6 +18,7 @@ public struct MacApplicationCatalog: ApplicationCatalog {
         case .codex: ("com.openai.codex", "Codex")
         case .claude: ("com.anthropic.claudefordesktop", "Claude")
         case .deepseek: ("com.deepseek.dsh", "DeepSeek Harness")
+        case .antigravity: ("com.google.antigravity", "Antigravity")
         }
     }
 }

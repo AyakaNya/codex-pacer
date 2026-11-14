@@ -1290,3 +1290,13 @@
 "layout.option.warning_limit" = "Show at most";
 "layout.option.warning_limit.two" = "2";
 "layout.option.warning_limit.all" = "All";
+
+"antigravity.source" = "Antigravity local Language Server";
+"antigravity.connected" = "Connected to the local Antigravity Language Server";
+"antigravity.unavailable" = "Antigravity unavailable; open the IDE or run agy yourself";
+"antigravity.passive" = "Read-only monitoring of an existing IDE or agy CLI. Unconfirmed tasks show Unknown. Pacer never starts agy or reads sign-in credentials.";
+"antigravity.reset" = "Resets";
+"antigravity.remaining" = "Remaining quota";
+"panel.block.antigravity" = "Antigravity";
+"panel.block_detail.antigravity" = "Separate Gemini and Claude + GPT quotas";
+"main.search.antigravity" = "Antigravity agy Gemini Google";

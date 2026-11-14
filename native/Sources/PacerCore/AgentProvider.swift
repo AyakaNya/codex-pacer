@@ -2,13 +2,14 @@ import Foundation
 
 /// The service that owns a session. Host names alone are not session identity.
 public enum AgentProvider: String, CaseIterable, Codable, Sendable, Identifiable {
-    case codex, claude, deepseek
+    case codex, claude, deepseek, antigravity
     public var id: String { rawValue }
     public var displayName: String {
         switch self {
         case .codex: "Codex"
         case .claude: "Claude"
         case .deepseek: "DeepSeek"
+        case .antigravity: "Antigravity"
         }
     }
 

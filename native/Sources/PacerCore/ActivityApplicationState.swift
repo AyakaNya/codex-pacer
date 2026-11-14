@@ -21,10 +21,12 @@ public struct ActivityApplicationState: Sendable {
     public var localActivities: [SessionActivity] = []
     public var remoteActivities: [SessionActivity] = []
     public var claudeActivities: [SessionActivity] = []
+    public var antigravityActivities: [SessionActivity] = []
     public var deepseekActivities: [SessionActivity] = []
     public var codexReceivedRequests: [PendingAttentionRequest] = []
     public var codexLogRequests: [PendingAttentionRequest] = []
     public var claudeReceivedRequests: [PendingAttentionRequest] = []
+    public var antigravityReceivedRequests: [PendingAttentionRequest] = []
     public var deepseekReceivedRequests: [PendingAttentionRequest] = []
     public var excludedCodexActivityIDs: Set<String> = []
     public var codexAttentionThreadIDs: Set<String> = []
@@ -37,6 +39,7 @@ public struct ActivityApplicationState: Sendable {
     public var includesDemoMetadata = false
     public var codexAttention = AttentionPolicy()
     public var claudeAttention = AttentionPolicy()
+    public var antigravityAttention = AttentionPolicy()
     public var deepseekAttention = AttentionPolicy()
     public var inbox: CompletionInbox { didSet { cachedPresentation = nil } }
     public private(set) var activities: [SessionActivity] = []
@@ -53,7 +56,7 @@ public struct ActivityApplicationState: Sendable {
 
     public func knownActivities(for provider: AgentProvider) -> [SessionActivity] {
         let incoming: [SessionActivity]
-        switch provider { case .codex: incoming = localActivities + remoteActivities + Array(pendingCodexEndings.values); case .claude: incoming = claudeActivities; case .deepseek: incoming = deepseekActivities }
+        switch provider { case .codex: incoming = localActivities + remoteActivities + Array(pendingCodexEndings.values); case .claude: incoming = claudeActivities; case .deepseek: incoming = deepseekActivities; case .antigravity: incoming = antigravityActivities }
         var values = Dictionary(inbox.activities.filter { $0.provider == provider }.map { ($0.canonicalized().id, $0.canonicalized()) }, uniquingKeysWith: { _, latest in latest })
         let samples = includesDemoMetadata ? demoActivities.filter { $0.provider == provider } : []
         for item in samples + incoming where inbox.isSourceVisible(item.sourceHostID) {
@@ -144,7 +147,8 @@ public struct ActivityApplicationState: Sendable {
         if requests != shown { requests = shown; cachedPresentation = nil }
         return codexAttention.requestNotices(shown.filter { $0.provider == .codex }) +
             claudeAttention.requestNotices(shown.filter { $0.provider == .claude }) +
-            deepseekAttention.requestNotices(shown.filter { $0.provider == .deepseek })
+            deepseekAttention.requestNotices(shown.filter { $0.provider == .deepseek }) +
+            antigravityAttention.requestNotices(shown.filter { $0.provider == .antigravity })
     }
     private var reconciledCodexRequests: [PendingAttentionRequest] {
         let liveInputs = Set(codexReceivedRequests.filter { $0.sourceHostID == nil && $0.kind == .input }.map(\.threadID))
@@ -165,13 +169,13 @@ public struct ActivityApplicationState: Sendable {
         return codexReceivedRequests + logged
     }
     @discardableResult public mutating func reconcile(at now: Date, retention: TimeInterval, visibility: ActivityVisibilityOptions) -> ActivityApplicationUpdate {
-        var notices = observeAttentionRequests(reconciledCodexRequests + claudeReceivedRequests + deepseekReceivedRequests, visibility: visibility)
+        var notices = observeAttentionRequests(reconciledCodexRequests + claudeReceivedRequests + deepseekReceivedRequests + antigravityReceivedRequests, visibility: visibility)
         let ignored = ignoredCodexActivityIDs
         inbox.remove(activityIDs: ignored)
         let previous = Dictionary(activities.map { ($0.id, $0) }, uniquingKeysWith: { _, new in new })
         let readyEndings = pendingCodexEndings.values.filter { inbox.isSourceVisible($0.sourceHostID) }
         let streamed = readyEndings.isEmpty ? remoteActivities : ActivitySourceMerger.merge(logged: readyEndings, streamed: remoteActivities)
-        let merged = (ActivitySourceMerger.merge(logged: localActivities, streamed: streamed) + claudeActivities + deepseekActivities)
+        let merged = (ActivitySourceMerger.merge(logged: localActivities, streamed: streamed) + claudeActivities + deepseekActivities + antigravityActivities)
             .filter { !ignored.contains($0.id) && !$0.codexGoalExpired(at: now) }.map { value in
                 var value = value
                 if let old = previous[value.id] { value.mergeDisplayMetadata(from: old) }
@@ -191,7 +195,8 @@ public struct ActivityApplicationState: Sendable {
         let tasks = taskGroups().filter { !($0.isRunning && [.completed, .interrupted].contains($0.primary.phase)) }.map(\.primary)
         notices += AttentionPolicy.excludingPendingReplies(codexAttention.activityNotices(tasks.filter { $0.provider == .codex }, at: now) +
             claudeAttention.activityNotices(tasks.filter { $0.provider == .claude }, at: now) +
-            deepseekAttention.activityNotices(tasks.filter { $0.provider == .deepseek }, at: now), activityIDs: Set(requests.map { $0.activity.id }))
+            deepseekAttention.activityNotices(tasks.filter { $0.provider == .deepseek }, at: now) +
+            antigravityAttention.activityNotices(tasks.filter { $0.provider == .antigravity }, at: now), activityIDs: Set(requests.map { $0.activity.id }))
         return update(notices: notices)
     }
     @discardableResult public mutating func applyDemoSnapshot(enabled: Set<AgentProvider>, at now: Date,
@@ -206,7 +211,7 @@ public struct ActivityApplicationState: Sendable {
     }
     public func visibleNotices(_ notices: [IslandNotice], visibility: ActivityVisibilityOptions) -> [IslandNotice] {
         let hidden = hiddenActivityIDs(visibility)
-        let allRequests = codexReceivedRequests + codexLogRequests + claudeReceivedRequests + deepseekReceivedRequests + demoRequests
+        let allRequests = codexReceivedRequests + codexLogRequests + claudeReceivedRequests + deepseekReceivedRequests + antigravityReceivedRequests + demoRequests
         let hiddenRequests = Set(allRequests.filter { hidden.contains($0.activity.canonicalized().id) }.map { "request:" + $0.id })
         return notices.filter { notice in
             !hiddenRequests.contains(notice.id) && (notice.kind == .lowQuota || !hidden.contains { notice.id.hasPrefix($0 + ":") })

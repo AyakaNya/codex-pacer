@@ -6,7 +6,7 @@ import PacerTestSupport
 @MainActor
 final class DemoSettingsTests: XCTestCase {
     private let now = Date(timeIntervalSince1970: 1_800_000_000)
-    private let arguments = ["--demo", "--demo-claude", "--demo-deepseek", "--demo-cloud"]
+    private let arguments = ["--demo", "--demo-claude", "--demo-deepseek", "--demo-cloud", "--demo-antigravity"]
 
     private func defaults() throws -> UserDefaults {
         let domain = testDefaultsName("DemoSettingsTests")
@@ -23,6 +23,9 @@ final class DemoSettingsTests: XCTestCase {
         let defaults = try defaults(), clock = now
         let model = IslandModel(demo: true, demoClock: { clock }, demoArguments: arguments, defaults: defaults)
         XCTAssertEqual(Set(model.enabledProviders), Set(AgentProvider.allCases), "Demo automatic choices use synthetic installations")
+        XCTAssertEqual(model.antigravityQuota?.buckets.count, 4)
+        XCTAssertFalse(model.compactPresentation().component(.quota).entries.contains { $0.provider == .antigravity },
+            "各個 bucket 不應被壓成一個收合欄百分比")
         for stage in DemoTaskStage.allCases {
             model.setDemoStage(stage)
             let before = model.activities.sorted { $0.id < $1.id }
@@ -59,7 +62,7 @@ final class DemoSettingsTests: XCTestCase {
 
     func testEveryModuleCombinationFiltersDemoTasksRequestsAndEndings() async throws {
         let clock = now
-        for mask in 0..<8 {
+        for mask in 0..<(1 << AgentProvider.allCases.count) {
             let defaults = try defaults()
             var modules = ProviderModules()
             let enabled = Set(AgentProvider.allCases.enumerated().compactMap { index, provider in

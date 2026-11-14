@@ -19,7 +19,7 @@ The first time you open Codex Pacer, a short guide walks you through it:
 
 1. What each part of the collapsed bar means.
 2. **Island**, which sits at the top center of the screen around the notch, or **Free Move**, which you drag anywhere.
-3. Which services to follow: Codex, Claude and DeepSeek. Pacer turns on the ones it finds installed.
+3. Which services to follow: Codex, Claude, DeepSeek and, on Mac, Antigravity. Pacer turns on the ones it finds installed.
 4. Progress rings, notifications and opening at login.
 
 You can open the guide again from **Help & Updates**. After each update, a short **What's New** note shows the highlights once.
@@ -102,6 +102,10 @@ Spend made elsewhere on your account, such as web searches or another device, is
 
 **DeepSeek Harness.** Pacer follows local Harness sessions, their speed and cost.
 
+**Antigravity 2.x (Mac).** Pacer detects the Antigravity app or `agy` executable. Keep the IDE or your own agy session running: Pacer only reads an existing local Language Server and never starts agy, sends a prompt or reads sign-in credentials. The task list shows the observed model, stage and elapsed time; explicit requests and endings use the same optional system notifications as other tasks. Unknown means Pacer cannot confirm the current state; closing the IDE or CLI never implies completion.
+
+The **Antigravity** settings page and expanded island show each Gemini and Claude + GPT quota bucket separately, including 5-hour and weekly windows and their reset times when provided. A missing percentage stays Unknown. Older model-only readings have no assumed cadence. Antigravity quota does not occupy a collapsed quota ring or have quota history yet; its tasks still appear in the collapsed task badge. Clicking an IDE task activates Antigravity; agy tasks have no automatic terminal navigation.
+
 **SSH hosts.** Pacer follows the hosts you already use in Codex and Claude. A host needs SSH access without a password prompt and Python 3. If a host disconnects, use **Retry** on the **Remote** page.
 
 **WSL on Windows.** Turn on WSL monitoring in **Settings → Remote** when you need it. At least one distribution must be installed. Monitoring increases power use. Use **Refresh Now** after installing a distribution or to check which ones are running.
@@ -116,6 +120,7 @@ Click the gear in the expanded island to open the main window.
 | --- | --- |
 | **Overview** | Anything that needs you, each service at a glance and the running tasks. |
 | **History** | Each service's quota over the current period, and DeepSeek's last 7 days. |
+| **Antigravity (Mac)** | Enable local task monitoring and view separate model-family quotas. |
 | **Codex, Claude, DeepSeek** | Turn each service on or off, sign in, progress rings and custom folders. |
 | **Remote** | SSH hosts, WSL and Remote Control. |
 | **Appearance** | Theme, accent color, the island's material and size, Island or Free Move, and which display it uses. |

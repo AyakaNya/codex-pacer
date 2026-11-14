@@ -66,6 +66,7 @@ final class CompactBarScenarioTableTests: XCTestCase {
                                 let expectedText: String
                                 switch entry.provider {
                                 case .deepseek: expectedText = wallet
+                                case .antigravity: XCTFail("Antigravity 配額以獨立 bucket 呈現"); expectedText = "—"
                                 case .codex, .claude: expectedText = try XCTUnwrap(metric.quota[entry.provider.rawValue])
                                 }
                                 XCTAssertEqual(entry.text, expectedText, label)

@@ -136,7 +136,8 @@ final class IslandMaterialTests: XCTestCase {
                 XCTAssertGreaterThanOrEqual((face + 0.05) / (shade + 0.05), 3.5, "\(accent) \(provider) reads on the light face")
                 XCTAssertEqual(shade, PacerAccent.lightLuminance(for: provider), accuracy: 0.004)
             }
-            XCTAssertEqual(shades, shades.sorted(), "\(accent): Codex, Claude, DeepSeek run strongest first, so the rings stay apart")
+            let originalShades = try [AgentProvider.codex, .claude, .deepseek].map { try luminance($0.tint) }
+            XCTAssertEqual(originalShades, originalShades.sorted(), "\(accent): Codex, Claude, DeepSeek run strongest first, so the rings stay apart")
             XCTAssertEqual(AgentProvider.codex.shade(light: false), accent.color, "\(accent): the dark tone is unchanged")
         }
         PacerAccent.current = .yellow

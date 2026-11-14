@@ -132,6 +132,13 @@ final class IslandModel: ObservableObject {
     @Published var deepseekBalance: DeepSeekBalance?
     @Published var deepseekBalanceError: DeepSeekBalanceError?
     @Published var deepseekRefreshing = false
+    @Published var antigravityQuota: QuotaSnapshot?
+    @Published var antigravityRefreshing = false
+    @Published var antigravityConnected = false
+    @Published var antigravityStreamStatus = RuntimeStreamStatus()
+    @Published var antigravityQuotaUnavailable = false
+    var antigravityReader = MacAntigravityReader()
+    var antigravityLastAttempt = Date.distantPast
     @Published private(set) var selectedProvider: AgentProvider = .codex
     @Published private(set) var enabledProviders: [AgentProvider] = []
     private var installation: ProviderInstallationDetection
@@ -146,6 +153,7 @@ final class IslandModel: ObservableObject {
             case .codex: codexQuota = newValue
             case .claude: claudeQuota = newValue
             case .deepseek: return
+            case .antigravity: antigravityQuota = newValue
             }
             onLayoutChange?()
         }
@@ -156,7 +164,7 @@ final class IslandModel: ObservableObject {
             switch selectedProvider {
             case .codex: codexHistory = newValue
             case .claude: claudeHistory = newValue
-            case .deepseek: break
+            case .deepseek, .antigravity: break
             }
         }
     }
@@ -166,7 +174,7 @@ final class IslandModel: ObservableObject {
             switch selectedProvider {
             case .codex: codexHistoryWarning = newValue
             case .claude: claudeHistoryWarning = newValue
-            case .deepseek: break
+            case .deepseek, .antigravity: break
             }
         }
     }
@@ -176,7 +184,7 @@ final class IslandModel: ObservableObject {
             switch selectedProvider {
             case .codex: codexErrorMessage = newValue
             case .claude: claudeErrorMessage = newValue
-            case .deepseek: break
+            case .deepseek, .antigravity: break
             }
         }
     }
@@ -187,6 +195,7 @@ final class IslandModel: ObservableObject {
         case .codex: codexRefreshing
         case .claude: claudeRefreshing
         case .deepseek: deepseekRefreshing
+        case .antigravity: antigravityRefreshing
         }
     }
     func providerStreamStatuses(_ provider: AgentProvider) -> [String: RuntimeStreamStatus] {
@@ -194,6 +203,7 @@ final class IslandModel: ObservableObject {
         case .codex: streamStatuses
         case .claude: claudeStreamStatuses
         case .deepseek: deepseekStreamStatuses
+        case .antigravity: ["local": antigravityStreamStatus]
         }
     }
     func taskPresentationOptions(for values: [SessionActivity]) -> TaskPresentationOptions {
@@ -211,6 +221,7 @@ final class IslandModel: ObservableObject {
         case .codex: codexQuota
         case .claude: claudeQuota
         case .deepseek: nil
+        case .antigravity: antigravityQuota
         }
     }
     func providerQuotaError(_ provider: AgentProvider) -> String? {
@@ -218,6 +229,7 @@ final class IslandModel: ObservableObject {
         case .codex: codexErrorMessage
         case .claude: claudeErrorMessage
         case .deepseek: deepseekBalanceError?.errorDescription
+        case .antigravity: antigravityQuotaUnavailable ? L10n.text("antigravity.unavailable") : nil
         }
     }
     func providerWindow(_ provider: AgentProvider, period: QuotaDashboardPeriod) -> QuotaWindow? {
@@ -231,14 +243,14 @@ final class IslandModel: ObservableObject {
         switch provider {
         case .codex: codexHistory
         case .claude: claudeHistory
-        case .deepseek: QuotaCycleHistory()
+        case .deepseek, .antigravity: QuotaCycleHistory()
         }
     }
     func providerHistoryWarning(_ provider: AgentProvider) -> String? {
         switch provider {
         case .codex: codexHistoryWarning
         case .claude: claudeHistoryWarning
-        case .deepseek: nil
+        case .deepseek, .antigravity: nil
         }
     }
     func providerCurrentCycle(_ provider: AgentProvider) -> QuotaCycle? {
@@ -248,6 +260,7 @@ final class IslandModel: ObservableObject {
         switch provider {
         case .codex: providerQuota(provider) == nil ? nil : L10n.text("quota.source_codex")
         case .claude: claudeQuotaSource?.label
+        case .antigravity: L10n.text("antigravity.source")
         case .deepseek: deepseekBalance.map { L10n.text($0.source == .web ? "deepseek.source.web" : "deepseek.source.api") }
         }
     }
@@ -611,6 +624,7 @@ final class IslandModel: ObservableObject {
             case .codex: CodexApplicationResolver.find()
             case .claude: ClaudeApplicationResolver.find()
             case .deepseek: DeepSeekApplicationResolver.find()
+            case .antigravity: AntigravityApplicationResolver.find()
             }
         }.value
     }
@@ -656,6 +670,7 @@ final class IslandModel: ObservableObject {
             remoteSourceIDs: Set(claudeRemoteTargets.map(\.id)))
     }
     func canOpen(_ activity: SessionActivity) -> Bool {
+        if activity.provider == .antigravity { return demo || activity.sourceHostID != "agy" && desktopApplications[.antigravity] != nil }
         guard !activity.isIgnoredCodexSession, completionInbox.isSourceVisible(activity.sourceHostID) else { return false }
         // Harness has no conversation link; its app opens on the session list.
         if activity.provider == .deepseek { return demo || DeepSeekApplicationResolver.cachedApplication() != nil }
@@ -1147,7 +1162,7 @@ final class IslandModel: ObservableObject {
         self.claudeQuotaReads = claudeQuotaReads ?? ClaudeQuotaReadDependencies()
         self.installationOverride = installation
         self.installation = installation ?? (demo && demoArguments != nil
-            ? ProviderInstallationDetection(codexInstalled: true, claudeInstalled: true, deepseekInstalled: true) : .detect())
+            ? ProviderInstallationDetection(codexInstalled: true, claudeInstalled: true, deepseekInstalled: true, antigravityInstalled: demoArguments?.contains("--demo-antigravity") == true) : .detect())
         self.modules = .load(from: defaults)
         self.appliedClaudeProgressRing = Self.progressRingEnabled(Self.claudeProgressRingKey, in: defaults)
         self.demo = demo
@@ -1174,6 +1189,7 @@ final class IslandModel: ObservableObject {
         bindCompletionSources(.codex)
         bindCompletionSources(.claude)
         bindCompletionSources(.deepseek)
+        bindCompletionSources(.antigravity)
         // Demo opens pinned so its content is visible; --demo-collapsed keeps the bar.
         expanded = (demo && demoArguments?.contains("--demo-collapsed") != true) || initiallyExpanded
         pinned = expanded
@@ -1371,6 +1387,7 @@ final class IslandModel: ObservableObject {
         case .codex: sourceGeneration
         case .claude: claudeGeneration
         case .deepseek: deepseekGeneration
+        case .antigravity: Int(lifecycle.version(.antigravity))
         }
     }
     private func cancelHostTracking(for provider: AgentProvider? = nil, clearApplications: Bool = false) {
@@ -1680,6 +1697,7 @@ final class IslandModel: ObservableObject {
         return result
     }
     func refreshTaskSources() {
+        refreshAntigravity(force: true)
         refreshActivity()
         launchOwnedWork(.init(.discovery, identifier: "manual")) { [weak self] ticket in
             guard let self, self.lifecycle.owns(ticket) else { return }
@@ -1832,7 +1850,7 @@ final class IslandModel: ObservableObject {
     }
     func applySettings(sourceChanged: Bool) {
         installation = installationOverride ?? (demo && demoArguments != nil
-            ? ProviderInstallationDetection(codexInstalled: true, claudeInstalled: true, deepseekInstalled: true) : .detect())
+            ? ProviderInstallationDetection(codexInstalled: true, claudeInstalled: true, deepseekInstalled: true, antigravityInstalled: demoArguments?.contains("--demo-antigravity") == true) : .detect())
         modules = .load(from: defaults)
         PacerAccent.current = PacerAccent(defaults: defaults)
         // Light Liquid Glass turns the whole island light before it redraws.
@@ -1950,6 +1968,11 @@ final class IslandModel: ObservableObject {
     }
 
     func bindCompletionSources(_ provider: AgentProvider) {
+        if provider == .antigravity {
+            completionInbox.bindSourceHomes(provider: provider, localHome: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".gemini"),
+                remoteHomes: ["agy": "antigravity-cli", "antigravity-ide": "antigravity"])
+            return
+        }
         guard provider != .deepseek else { completionInbox.bindSourceHomes(provider: provider, localHome: deepseekHome); return }
         let targets = provider == .codex ? (monitorsSSH ? RemoteActivityTarget.configured(home: home) : []) : claudeRemoteTargets
         var remoteHomes = Dictionary(targets.map { ($0.id, $0.home) }, uniquingKeysWith: { _, latest in latest })
@@ -2049,12 +2072,14 @@ final class IslandModel: ObservableObject {
                 case .codex: refreshCodexQuota(force: force)
                 case .claude: refreshClaudeQuota(force: force)
                 case .deepseek: refreshDeepSeekBalance(scheduled: !force, active: active)
+                case .antigravity: refreshAntigravity(force: force)
                 }
             case .codexActivity: refreshActivity()
             case .remoteActivity: refreshRemote()
             case .activity(let provider):
                 if provider == .claude { startClaudeActivity() }
                 else if provider == .deepseek { startDeepSeekActivity() }
+                else if provider == .antigravity { refreshAntigravity() }
             case .claudeTargets: discoverClaudeRemoteTargets()
             case .applications: refreshDesktopApplications()
             case .clock: scheduleClock()
@@ -2066,6 +2091,7 @@ final class IslandModel: ObservableObject {
                 case .codex: resetCodexSource(versionInvalidated: true)
                 case .claude: resetClaudeSource(versionInvalidated: true)
                 case .deepseek: resetDeepSeekSource(versionInvalidated: true)
+                case .antigravity: resetAntigravitySource()
                 }
             case .updateActivityPolicy: logWatcher.update(watchedLogURLs, interval: activityRefreshPolicy.interval)
             case .cloud: syncClaudeCloudMonitor()
@@ -2082,7 +2108,7 @@ final class IslandModel: ObservableObject {
             case .cancelHostTracking: cancelHostTracking()
             case .cancelRemoteSetup: cancelClaudeRemoteSetup()
             case .demoSnapshot: applyDemoSnapshot()
-            case .suspendSources, .stopSources: break
+            case .suspendSources, .stopSources: antigravityRefreshing = false
             }
         }
     }
@@ -2113,6 +2139,7 @@ final class IslandModel: ObservableObject {
         var observed = demoArguments.contains("--demo-subagents") ? DemoScenario.subagentTasks(stage: stage, at: now) : DemoScenario.tasks(stage: stage, at: now)
         if demoArguments.contains("--demo-claude") { observed.append(DemoScenario.claudeTask(stage: stage, at: now)) }
         if demoArguments.contains("--demo-deepseek") { observed.append(DemoScenario.deepseekTask(stage: stage, at: now)) }
+        if demoArguments.contains("--demo-antigravity") { observed.append(makeAntigravityDemo(stage: stage)) }
         demoRequests = []
         if demoArguments.contains("--demo-cloud") {
             let cloud = DemoScenario.claudeCloud(stage: stage, at: now)

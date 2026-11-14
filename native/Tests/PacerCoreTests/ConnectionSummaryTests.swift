@@ -62,8 +62,8 @@ final class ConnectionSummaryTests: XCTestCase {
         XCTAssertEqual(missing.state, .connecting(1), "A missing enabled local provider must be included")
         XCTAssertEqual(missing.sources, 2)
         let deepseek = summary([.codex: ["local": status(true)], .claude: ["local": status(true)]], enabled: AgentProvider.allCases)
-        XCTAssertEqual(deepseek.state, .connecting(1), "DeepSeek's local sessions count like the other modules'")
-        XCTAssertEqual(deepseek.sources, 3)
+        XCTAssertEqual(deepseek.state, .connecting(2), "DeepSeek's local sessions count like the other modules'")
+        XCTAssertEqual(deepseek.sources, 4)
         XCTAssertEqual(summary([.codex: ["local": status(true)], .claude: ["local": status(true)], .deepseek: ["local": status(true, sessions: 4)]],
             enabled: AgentProvider.allCases).sessions, 4)
         XCTAssertEqual(summary([:]).state, .checking)

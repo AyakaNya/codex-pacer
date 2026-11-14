@@ -11,7 +11,7 @@ final class WidthMeasurementTests: XCTestCase {
         var value: CGFloat = 0
     }
 
-    func testThreeProviderTaskToolbarMeasuresItsWholeEnglishAndChineseWidth() async throws {
+    func testThreeAndFourProviderTaskToolbarsMeasureTheirWholeEnglishAndChineseWidth() async throws {
         _ = NSApplication.shared
         let domain = testDefaultsName("TaskToolbarWidthTests")
         let defaults = try XCTUnwrap(UserDefaults(suiteName: domain))
@@ -22,19 +22,22 @@ final class WidthMeasurementTests: XCTestCase {
         defaults.set("/synthetic/toolbar/deepseek", forKey: "deepseekHome")
         defaults.set(false, forKey: "monitorSSH"); defaults.set(false, forKey: "monitorRemoteControl")
         let now = Date(timeIntervalSince1970: 1_800_000_000)
+        for hasAntigravity in [false, true] {
+        let providers: [AgentProvider] = hasAntigravity ? AgentProvider.allCases : [.codex, .claude, .deepseek]
         for demo in [false, true] {
-            let model = IslandModel(demo: demo, demoClock: { now }, demoArguments: ["--demo-claude", "--demo-deepseek"], defaults: defaults,
-                installation: .init(codexInstalled: true, claudeInstalled: true, deepseekInstalled: true))
+            let model = IslandModel(demo: demo, demoClock: { now }, demoArguments: ["--demo-claude", "--demo-deepseek"] + (hasAntigravity ? ["--demo-antigravity"] : []), defaults: defaults,
+                installation: .init(codexInstalled: true, claudeInstalled: true, deepseekInstalled: true, antigravityInstalled: hasAntigravity))
             if !demo {
                 model.now = now
                 model.activities = DemoScenario.tasks(stage: .thinking, at: now)
                     + [DemoScenario.claudeTask(stage: .thinking, at: now), DemoScenario.deepseekTask(stage: .thinking, at: now)]
+                if hasAntigravity { model.activities.append(model.makeAntigravityDemo(stage: .thinking)) }
                 model.desktopApplicationResolver = { _ in URL(fileURLWithPath: "/Synthetic.app") }
             }
             model.refreshDesktopApplications()
-            try await TestWait.until { model.appButtonProviders == AgentProvider.allCases }
-            XCTAssertEqual(model.appButtonProviders, AgentProvider.allCases)
-            XCTAssertEqual(model.visibleActivities.count, 4)
+            try await TestWait.until { model.appButtonProviders == providers }
+            XCTAssertEqual(model.appButtonProviders, providers)
+            XCTAssertEqual(model.visibleActivities.count, hasAntigravity ? 5 : 4)
             for language in AppLanguage.allCases {
                 let capture = WidthCapture()
                 let header = TaskPagerView(model: model, language: language).header
@@ -53,7 +56,7 @@ final class WidthMeasurementTests: XCTestCase {
                 let measured = capture.value
                 if demo {
                     XCTAssertGreaterThan(measured, oldAvailable, "The paginated toolbar needs more than the old 404-point panel in \(language)")
-                } else {
+                } else if !hasAntigravity {
                     XCTAssertLessThanOrEqual(measured, oldAvailable, "Without the demo badge, the toolbar fits the existing minimum")
                 }
                 let title = L10n.text("layout.group.tasks", language: language)
@@ -67,7 +70,7 @@ final class WidthMeasurementTests: XCTestCase {
                     contentWidth: model.measuredContentWidth)
                 if demo {
                     XCTAssertGreaterThan(panel, 404)
-                } else {
+                } else if !hasAntigravity {
                     XCTAssertEqual(panel, 404)
                 }
                 XCTAssertLessThanOrEqual(panel, 680)
@@ -77,6 +80,7 @@ final class WidthMeasurementTests: XCTestCase {
                 XCTAssertLessThanOrEqual(host.fittingSize.width, host.frame.width + 1)
             }
             await model.shutdown()
+        }
         }
     }
 

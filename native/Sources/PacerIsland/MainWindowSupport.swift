@@ -7,10 +7,10 @@ import SwiftUI
 /// a footer with About and Support. Earlier stored pages open where their
 /// content moved.
 enum SettingsPane: String, CaseIterable, Identifiable {
-    case overview, history, codex, claude, deepseek, remote, appearance, collapsedBar, expandedPanel, notifications, general, about, support
+    case overview, history, codex, claude, deepseek, antigravity, remote, appearance, collapsedBar, expandedPanel, notifications, general, about, support
     static let defaultsKey = "settingsPane"
     /// The sidebar's groups, in order; About and Support sit in its footer.
-    static let groups: [[SettingsPane]] = [[.overview, .history], [.codex, .claude, .deepseek, .remote],
+    static let groups: [[SettingsPane]] = [[.overview, .history], [.codex, .claude, .deepseek, .antigravity, .remote],
                                            [.appearance, .collapsedBar, .expandedPanel, .notifications, .general]]
     var id: String { rawValue }
 
@@ -32,6 +32,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .codex: self = .codex
         case .claude: self = .claude
         case .deepseek: self = .deepseek
+        case .antigravity: self = .antigravity
         }
     }
 
@@ -40,6 +41,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .codex: .codex
         case .claude: .claude
         case .deepseek: .deepseek
+        case .antigravity: .antigravity
         default: nil
         }
     }
@@ -51,6 +53,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .codex: AgentProvider.codex.displayName
         case .claude: AgentProvider.claude.displayName
         case .deepseek: AgentProvider.deepseek.displayName
+        case .antigravity: AgentProvider.antigravity.displayName
         case .remote: L10n.text("main.pane.remote")
         case .appearance: L10n.text("settings.pane.appearance")
         case .collapsedBar: L10n.text("settings.pane.collapsed")
@@ -70,6 +73,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .codex: AgentProvider.codex.glyph
         case .claude: AgentProvider.claude.glyph
         case .deepseek: AgentProvider.deepseek.glyph
+        case .antigravity: AgentProvider.antigravity.glyph
         case .remote: "server.rack"
         case .appearance: "circle.lefthalf.filled"
         case .collapsedBar: "rectangle.topthird.inset.filled"
@@ -97,7 +101,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
 
     var tint: Color {
         switch self {
-        case .codex, .claude, .deepseek: provider?.brand ?? .gray
+        case .codex, .claude, .deepseek, .antigravity: provider?.brand ?? .gray
         case .appearance: Color(red: 0.44, green: 0.4, blue: 0.96)
         case .collapsedBar, .expandedPanel: Color(red: 0.2, green: 0.22, blue: 0.27)
         case .notifications: Color(red: 1, green: 0.3, blue: 0.29)

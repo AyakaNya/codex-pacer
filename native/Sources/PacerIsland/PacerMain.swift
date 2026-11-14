@@ -419,6 +419,15 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
                 sourceTarget: model.claudeRemoteTargets.first { $0.id == activity.sourceHostID },
                 recordedHost: model.claudeHost(for: activity))
         }
+        if activity.provider == .antigravity {
+            guard activity.sourceHostID != "agy", let application = AntigravityApplicationResolver.find() else { return .failed(L10n.text("activity.open_failed")) }
+            let configuration = NSWorkspace.OpenConfiguration(); configuration.activates = true
+            return await withCheckedContinuation { continuation in
+                NSWorkspace.shared.openApplication(at: application, configuration: configuration) { _, error in
+                    continuation.resume(returning: error == nil ? .openedConversation : .failed(L10n.text("activity.open_failed")))
+                }
+            }
+        }
         if activity.provider == .deepseek {
             // Harness has no conversation link; bringing it forward shows its session list.
             guard let application = DeepSeekApplicationResolver.find() else { return .failed(L10n.text("deepseek.app_missing")) }

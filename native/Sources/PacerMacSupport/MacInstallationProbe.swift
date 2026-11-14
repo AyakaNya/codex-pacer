@@ -18,9 +18,9 @@ extension ProviderInstallationDetection {
             return urls.prefix(12).contains { $0.pathExtension.lowercased() == "app" && Bundle(url: $0)?.bundleIdentifier == bundleID }
         }
         func cliInstalled(_ name: String) -> Bool {
-            let paths = [userHome.appendingPathComponent(".local/bin").path] + systemBinDirectories +
-                MacExecutablePlatform.managerBinDirectories(environment: environment, userHome: userHome) +
-                (environment["PATH"] ?? "").split(separator: ":").prefix(128).map(String.init).filter { $0.hasPrefix("/") }
+            var paths = [userHome.appendingPathComponent(".local/bin").path] + systemBinDirectories
+            paths += MacExecutablePlatform.managerBinDirectories(environment: environment, userHome: userHome)
+            paths += (environment["PATH"] ?? "").split(separator: ":").prefix(128).map { String($0) }.filter { $0.hasPrefix("/") }
             return paths.contains {
                 CodexExecutableResolver.isExecutableFile(URL(fileURLWithPath: $0).appendingPathComponent(name))
             }
@@ -31,6 +31,7 @@ extension ProviderInstallationDetection {
         let deepseek = appInstalled(.deepseek, bundleID: "com.deepseek.dsh", name: "DeepSeek Harness") || cliInstalled("dsh") ||
             FileManager.default.fileExists(atPath: DeepSeekHome.resolve(environment: environment, userHome: userHome)
                 .appendingPathComponent("sessions").path)
-        return Self(codexInstalled: codex, claudeInstalled: claude, deepseekInstalled: deepseek)
+        let antigravity = appInstalled(.antigravity, bundleID: "com.google.antigravity", name: "Antigravity") || cliInstalled("agy")
+        return Self(codexInstalled: codex, claudeInstalled: claude, deepseekInstalled: deepseek, antigravityInstalled: antigravity)
     }
 }

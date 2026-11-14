@@ -25,13 +25,16 @@ final class ActivityApplicationStateTests: XCTestCase {
     func testDemoModuleFilteringDoesNotChangeObservedInputRules() {
         let codex = task(), claude = DemoScenario.claudeTask(stage: .thinking, at: now)
         let deepseek = DemoScenario.deepseekTask(stage: .thinking, at: now)
+        let session = codex.threadID!
+        var antigravity = SessionActivity(id: AgentProvider.antigravity.activityID(sessionID: session), provider: .antigravity, sessionID: session)
+        antigravity.applyRuntime(["method": "turn/started", "threadId": session, "turnId": "sample", "at": now.timeIntervalSince1970])
         var state = ActivityApplicationState()
-        state.localActivities = [codex]; state.claudeActivities = [claude]; state.deepseekActivities = [deepseek]
+        state.localActivities = [codex]; state.claudeActivities = [claude]; state.deepseekActivities = [deepseek]; state.antigravityActivities = [antigravity]
         state.claudeReceivedRequests = [request(claude)]
         state.reconcile(at: now, retention: 300, visibility: visible)
         XCTAssertEqual(Set(state.activities.map(\.provider)), Set(AgentProvider.allCases))
         XCTAssertEqual(state.requests.map(\.provider), [.claude])
-        state.demoActivities = [codex, claude, deepseek]; state.demoRequests = [request(claude)]
+        state.demoActivities = [codex, claude, deepseek, antigravity]; state.demoRequests = [request(claude)]
         state.includesDemoMetadata = true
         state.applyDemoSnapshot(enabled: [.deepseek], at: now, visibility: visible)
         XCTAssertEqual(state.activities.map(\.provider), [.deepseek])

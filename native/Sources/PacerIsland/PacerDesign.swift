@@ -52,6 +52,7 @@ extension AgentProvider {
         switch self {
         case .codex: Color(red: 14 / 255, green: 140 / 255, blue: 120 / 255)
         case .claude: Color(red: 196 / 255, green: 88 / 255, blue: 31 / 255)
+        case .antigravity: Color(red: 0.25, green: 0.55, blue: 0.90)
         case .deepseek: Color(red: 62 / 255, green: 91 / 255, blue: 219 / 255)
         }
     }
@@ -61,6 +62,7 @@ extension AgentProvider {
         case .codex: Color(red: 0.49, green: 0.84, blue: 0.77)
         case .claude: Color(red: 0.95, green: 0.61, blue: 0.42)
         case .deepseek: color
+        case .antigravity: Color(red: 0.50, green: 0.72, blue: 1)
         }
     }
     /// DeepSeek's blue (#7B93FF) reads at the same weight as the other two on black.
@@ -71,6 +73,7 @@ extension AgentProvider {
         case .codex: "chevron.left.forwardslash.chevron.right"
         case .claude: "asterisk"
         case .deepseek: "water.waves"
+        case .antigravity: "sparkles"
         }
     }
 }
@@ -114,7 +117,7 @@ enum PacerAccent: String, CaseIterable, Identifiable {
     /// light color such as yellow keeps at least 3.5:1 against the light face.
     func tint(for provider: AgentProvider, light: Bool = false) -> Color? {
         guard let base = light ? lightComponents(for: provider) : components.map({ base in
-            let lift = switch provider { case .codex: 0.0; case .claude: 0.42; case .deepseek: 0.66 }
+            let lift = switch provider { case .codex: 0.0; case .claude: 0.42; case .deepseek: 0.66; case .antigravity: 0.25 }
             func lifted(_ value: Double) -> Double { value + (1 - value) * lift }
             return (lifted(base.red), lifted(base.green), lifted(base.blue))
         }) else { return nil }
@@ -123,7 +126,7 @@ enum PacerAccent: String, CaseIterable, Identifiable {
     /// Relative luminance of each service's shade on light glass: Codex 0.07,
     /// Claude 0.12 and DeepSeek 0.20, about 7.4, 5.2 and 3.6:1 against #ECECF0.
     static func lightLuminance(for provider: AgentProvider) -> Double {
-        switch provider { case .codex: 0.07; case .claude: 0.12; case .deepseek: 0.2 }
+        switch provider { case .codex: 0.07; case .claude: 0.12; case .deepseek: 0.2; case .antigravity: 0.1 }
     }
     /// The color's linear light scaled evenly to the service's luminance, which
     /// keeps its hue and saturation.

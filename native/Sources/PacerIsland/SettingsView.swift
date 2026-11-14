@@ -294,7 +294,7 @@ struct SettingsView: View {
                 lowBalance: $deepseekLowBalance, spikeLimit: $deepseekSpikeLimit,
                 providers: AgentProvider.allCases.filter { moduleEnabled($0) }, openDeepSeek: { pane = .deepseek },
                 openTaskList: { panelSelection = .block(.tasks); pane = .expandedPanel })
-        case .codex, .claude, .deepseek:
+        case .codex, .claude, .deepseek, .antigravity:
             if let provider = pane.provider { providerPane(provider) }
         case .remote:
             SettingsConnectionsPane(model: model, monitorSSH: $monitorSSH, monitorRemoteControl: $monitorRemoteControl, monitorDurable: $monitorDurable,
@@ -314,6 +314,14 @@ struct SettingsView: View {
     @ViewBuilder private func providerPane(_ provider: AgentProvider) -> some View {
         if !moduleEnabled(provider) {
             MainCard { CardRow(title: L10n.text("main.module_off_hint")) }
+        } else if provider == .antigravity {
+            MainCard(title: L10n.text("main.section.status")) {
+                CardRow(title: L10n.text(model.isDemo ? "demo.label" : model.antigravityConnected ? "antigravity.connected" : "antigravity.unavailable")) {
+                    Button(L10n.text("connections.retry")) { model.refreshAntigravity(force: true) }.buttonStyle(.main)
+                }
+                Text(L10n.text("antigravity.passive")).font(.system(size: 12)).foregroundStyle(.secondary)
+            }
+            MainCard(title: L10n.text("layout.group.quota")) { AntigravityQuotaView(model: model) }
         } else if provider == .deepseek {
             SettingsDeepSeekSections(model: model, balanceSource: $deepseekSource, budgets: $deepseekBudgets,
                 // Like Codex, the switch applies at once, so turning it off and quitting still removes the entry.

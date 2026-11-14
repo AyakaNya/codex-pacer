@@ -31,6 +31,7 @@
 - **Know when you're needed.** A task waiting for your reply or approval turns the island amber, and a finished task stays until you've seen it. System notifications are optional.
 - **Jump back in.** Click a task to open its conversation in the app that runs it.
 - **Quota with pace.** Each service's 5-hour and weekly quota on one ring, with a tick that shows whether you're ahead of or behind an even pace, and a forecast for the reset.
+- **Antigravity 2.x on Mac.** Follow existing Antigravity IDE and agy CLI tasks, with separate Gemini and Claude + GPT quotas. Unconfirmed task states stay Unknown.
 - **DeepSeek balance and budgets.** Today's spend on a 24-hour dial with the peak-price hours marked, or daily and weekly budgets paced like quota. Spending elsewhere on your account counts too.
 - **Overview and history.** The main window opens on everything that needs you, with each service's quota history.
 - **English and Simplified Chinese.**
@@ -58,7 +59,7 @@ On first launch a short guide helps you pick a layout and the services to follow
 ## Requirements
 
 - macOS 14 or later (Apple silicon or Intel), or Windows 10 version 2004 or later (x64 or ARM64). Liquid Glass needs macOS 26 or Windows 11 22H2.
-- At least one of Codex, Claude Code or DeepSeek Harness, installed and signed in.
+- At least one of Codex, Claude Code or DeepSeek Harness, installed and signed in; on Mac, Antigravity IDE or agy CLI also works.
 - For SSH hosts: SSH access without a password prompt, and Python 3 on the host.
 
 ## Privacy

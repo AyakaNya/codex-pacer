@@ -51,7 +51,7 @@ public struct SessionActivity: Equatable, Sendable, Identifiable {
     /// The same place on claude.ai, for when Claude Desktop cannot open it.
     public var claudeCloudWebURL: URL? { claudeCloud?.url(session: threadID, web: true) }
     public var threadURL: URL? {
-        if provider == .deepseek { return nil }
+        if provider == .deepseek || provider == .antigravity { return nil }
         if provider == .claude {
             if let claudeCloud { return claudeCloud.url(session: threadID, web: false) }
             guard sourceHostID == nil, let desktopSessionID else { return nil }

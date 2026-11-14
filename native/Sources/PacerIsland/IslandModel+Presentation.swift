@@ -47,7 +47,7 @@ extension IslandModel {
             providerQuota(provider).map { (provider, $0) }
         })
         let failed = Set(enabledProviders.filter { providerQuotaError($0) != nil })
-        let selections = Dictionary(uniqueKeysWithValues: enabledProviders.filter { $0 != .deepseek }.map { provider in
+        let selections = Dictionary(uniqueKeysWithValues: enabledProviders.filter { $0 != .deepseek && $0 != .antigravity }.map { provider in
             (provider, QuotaWindowSelection(saved: defaults.string(forKey: provider == .codex ? "quotaWindowID" : "claudeQuotaWindowID"),
                 snapshot: providerQuota(provider)))
         })
@@ -61,7 +61,7 @@ extension IslandModel {
         let tasks = taskPresentation
         let wallet = compactWallet
         let context = CompactBarContext(activities: activities, requests: pendingInputRequests, completions: tasks.pendingCompletions,
-            sources: enabledProviders.filter { $0 != .deepseek }.map {
+            sources: enabledProviders.filter { $0 != .deepseek && $0 != .antigravity }.map {
                 .init(provider: $0, snapshot: providerQuota($0), failed: providerQuotaError($0) != nil)
             }, wallet: wallet.map { .init($0, preferred: deepseekRingPeriod) },
             firstOutput: latestFirstOutputLatency, warnings: warningItems(warnings: compactLayout.warnings, wallet: wallet),

@@ -18,6 +18,7 @@ public enum CompactBarPresentation {
             case .codex: self = .codex
             case .claude: self = .claude
             case .deepseek: self = .deepseek
+            case .antigravity: self = .none
             }
         }
         public var provider: AgentProvider? {
@@ -187,7 +188,7 @@ public enum CompactBarPresentation {
 
     public static func project(_ request: Request, layout suppliedLayout: CompactIslandLayout? = nil,
                                components suppliedComponents: CompactComponentOptions? = nil) -> Output? {
-        guard let language = AppLanguage(rawValue: request.language), request.providers.count <= 3,
+        guard let language = AppLanguage(rawValue: request.language), request.providers.count <= AgentProvider.allCases.count,
               Set(request.providers).count == request.providers.count, request.options.valid,
               request.warnings.map({ $0.count <= 6 && $0.allSatisfy { CompactIslandLayout.Warning(rawValue: $0) != nil } }) ?? true,
               request.layout.map({ $0.utf8.count <= 8192 }) ?? true,
@@ -195,7 +196,7 @@ public enum CompactBarPresentation {
               request.size.map({ $0.utf8.count <= 64 }) ?? true else { return nil }
         let choices = suppliedComponents ?? CompactComponentOptions.decode(request.componentOptions)
         let metrics = (request.size.flatMap(CompactBarSize.init(rawValue:)) ?? .standard).metrics
-        let providers = Set(request.providers), ordered = AgentProvider.allCases.filter(providers.contains)
+        let providers = Set(request.providers), ordered = AgentProvider.allCases.filter { providers.contains($0) && $0 != .antigravity }
         var layout = suppliedLayout ?? (request.layout.flatMap { $0.data(using: .utf8) }.flatMap { try? JSONDecoder().decode(CompactIslandLayout.self, from: $0) }?.normalized ?? .standard)
         if let warnings = request.warnings { layout.warnings = Set(warnings.compactMap(CompactIslandLayout.Warning.init(rawValue:))) }
         if let action = request.action {
@@ -240,7 +241,7 @@ public enum CompactBarPresentation {
         let automatic = request.options.rings.allSatisfy { $0 == .automatic }
         let ringChoices: [RingChoice]
         if automatic {
-            var values = Array(ordered.filter { $0 != .deepseek }.prefix(2)).map(RingChoice.init(provider:))
+            var values = Array(ordered.filter { $0 != .deepseek && $0 != .antigravity }.prefix(2)).map(RingChoice.init(provider:))
             // Settings names an enabled wallet even before it has a budget;
             // the drawing below independently excludes undrawable rings.
             if values.count == 1, providers.contains(.deepseek) { values.append(.deepseek) }

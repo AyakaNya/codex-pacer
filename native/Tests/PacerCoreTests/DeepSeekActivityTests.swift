@@ -98,7 +98,7 @@ final class DeepSeekActivityTests: XCTestCase {
         XCTAssertEqual(value.phase, .completed)
         XCTAssertFalse(value.isHistoricalCompletion)
         // 1000 uncached + 4000 cached input and 300 output, at twice the off-peak price.
-        let expected = (2000 * 1.0 + 8000 * 0.02 + 300 * 4.0) * 2 / 1_000_000
+        let expected: Double = (2000 * 1.0 + 8000 * 0.02 + 300 * 4.0) * 2 / 1_000_000
         XCTAssertEqual(value.turnCost ?? 0, expected, accuracy: 1e-9)
         XCTAssertEqual(state.ledger.total(in: DateInterval(start: peak, duration: 3600)).peak, expected, accuracy: 1e-9)
         XCTAssertEqual(state.latestProvider?.name, "deepseek-account")
@@ -365,7 +365,7 @@ final class DeepSeekActivityTests: XCTestCase {
             line("model/selection", seq: 1, at: 0.5, ["provider": "deepseek-account", "model": "deepseek-flash"]),
             line("turn/start", seq: 2, at: 1, ["turn": 1]), line("step/start", seq: 3, at: 1.2, ["turn": 1, "step": 1]),
             response(step: 1, at: 3, output: 100)])
-        let each = (1000 * 1.0 + 4000 * 0.02 + 100 * 4.0) * 2 / 1_000_000
+        let each: Double = (1000 * 1.0 + 4000 * 0.02 + 100 * 4.0) * 2 / 1_000_000
         let root = try XCTUnwrap(state.activities.first { $0.id == key })
         XCTAssertEqual(root.turnCost ?? 0, 2 * each, accuracy: 1e-9, "Delegated spend adds to the parent's open turn")
         XCTAssertEqual(root.turnPeakCost ?? 0, 2 * each, accuracy: 1e-9)
